@@ -27,7 +27,7 @@ source .env 2>/dev/null || true
 set +a
 
 # 3. Build
-log "构建 Docker 镜像..."
+log "构建 Docker 镜像 (PHP ${PHP_VERSION:-8.2})..."
 docker-compose build --no-cache
 
 # 4. Prepare services
@@ -55,23 +55,39 @@ fi
 
 # 6. Project Path
 PROJECT_PATH=${PROJECT_PATH:-./src}
+LARAVEL_VERSION=${LARAVEL_VERSION:-latest}
 
 # 7. Create Laravel Project
 if [ ! -d "$PROJECT_PATH/vendor" ]; then
-    log "创建 Laravel 项目..."
-    docker exec $EXEC_FLAGS laravel-php composer create-project --prefer-dist laravel/laravel . --no-interaction
+    log "创建 Laravel 项目 (版本: $LARAVEL_VERSION)..."
+    
+    # 清理 .gitkeep 以允许 composer create-project 运行
+    rm -f "$PROJECT_PATH/.gitkeep" 2>/dev/null || true
+
+    # 构建安装命令
+    if [ "$LARAVEL_VERSION" = "latest" ]; then
+        PKG="laravel/laravel"
+    else
+        PKG="laravel/laravel:${LARAVEL_VERSION}"
+    fi
+
+    docker exec $EXEC_FLAGS laravel-php composer create-project --prefer-dist "$PKG" . --no-interaction
     
     # Configure DB in Laravel .env if newly created
     if [ -f "$PROJECT_PATH/.env" ]; then
         log "配置 Laravel 数据库连接..."
-        # Replace DB_CONNECTION=sqlite with mysql
+        # Replace DB_CONNECTION=sqlite with mysql (适用于 Laravel 11+)
         sed -i '' 's/DB_CONNECTION=sqlite/DB_CONNECTION=mysql/g' "$PROJECT_PATH/.env"
-        # Uncomment and set DB host/port
+        
+        # 通用配置 (适用于所有版本)
         sed -i '' 's/# DB_HOST=127.0.0.1/DB_HOST=mysql/g' "$PROJECT_PATH/.env"
+        sed -i '' 's/DB_HOST=127.0.0.1/DB_HOST=mysql/g' "$PROJECT_PATH/.env"
+        
         sed -i '' 's/# DB_PORT=3306/DB_PORT=3306/g' "$PROJECT_PATH/.env"
         sed -i '' 's/# DB_DATABASE=laravel/DB_DATABASE=laravel/g' "$PROJECT_PATH/.env"
         sed -i '' 's/# DB_USERNAME=root/DB_USERNAME=laravel/g' "$PROJECT_PATH/.env"
         sed -i '' 's/# DB_PASSWORD=/DB_PASSWORD=secret/g' "$PROJECT_PATH/.env"
+        
         # Set Redis Host
         sed -i '' 's/REDIS_HOST=127.0.0.1/REDIS_HOST=redis/g' "$PROJECT_PATH/.env"
     fi
