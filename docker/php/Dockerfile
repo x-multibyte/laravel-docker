@@ -1,4 +1,8 @@
-FROM php:8.2-fpm-alpine
+ARG PHP_VERSION=8.2
+FROM php:${PHP_VERSION}-fpm-alpine
+
+ARG PHP_EXTENSIONS="pdo pdo_mysql mysqli mbstring exif pcntl bcmath opcache intl zip gd redis"
+ARG PHP_TIMEZONE="Asia/Shanghai"
 
 RUN apk add --no-cache \
     git \
@@ -13,30 +17,32 @@ RUN apk add --no-cache \
     libjpeg-turbo-dev \
     icu-dev \
     mysql-client \
-    tzdata
+    tzdata \
+    $PHPIZE_DEPS
 
-RUN apk add --no-cache tzdata && \
-    cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
-    echo "Asia/Shanghai" > /etc/timezone
+# 设置时区
+RUN cp /usr/share/zoneinfo/${PHP_TIMEZONE} /etc/localtime && \
+    echo "${PHP_TIMEZONE}" > /etc/timezone
 
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) \
-        pdo \
-        pdo_mysql \
-        mysqli \
-        mbstring \
-        exif \
-        pcntl \
-        bcmath \
-        opcache \
-        intl \
-        zip \
-        gd
+# 配置 GD 扩展
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg || true
 
-RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
-    && pecl install redis \
-    && docker-php-ext-enable redis \
-    && apk del .build-deps
+# 动态安装 PHP 扩展
+RUN if [ -n "$PHP_EXTENSIONS" ]; then \
+        for ext in $(echo "$PHP_EXTENSIONS" | tr ' ' '\n' | grep -v '^$'); do \
+            case "$ext" in \
+                redis|pcov) \
+                    pecl install $ext && docker-php-ext-enable $ext || echo "Warning: Failed to install $ext" \
+                    ;; \
+                *) \
+                    docker-php-ext-install -j$(nproc) $ext || echo "Warning: Failed to install $ext" \
+                    ;; \
+            esac \
+        done \
+    fi
+
+# 清理构建依赖
+RUN apk del .build-deps 2>/dev/null || true
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
