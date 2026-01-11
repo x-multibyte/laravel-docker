@@ -1,0 +1,11 @@
+{
+  "general": {
+    "previewFeatures": true
+  },
+  "ui": {
+    "footer": {
+      "hideModelInfo": false
+    },
+    "showModelInfoInChat": true
+  }
+}

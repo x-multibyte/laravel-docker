@@ -11,7 +11,7 @@ services:
       - "${NGINX_HTTPS_PORT:-443}:443"
     volumes:
       - ${PROJECT_PATH:-./src}:/var/www/html
-      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+      - ./docker/nginx/conf.d:/etc/nginx/http.d
       - nginx_logs:/var/log/nginx
     depends_on:
       - php

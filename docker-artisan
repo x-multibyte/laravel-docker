@@ -1,0 +1,10 @@
+#!/bin/bash
+# 自动检测是否在 TTY 终端中运行，以决定是否使用 -t 参数
+# 这样既支持用户交互式使用（如 tinker），也支持脚本自动化调用
+if [ -t 0 ]; then
+    FLAGS="-it"
+else
+    FLAGS="-i"
+fi
+
+docker exec $FLAGS laravel-php php artisan "$@"
