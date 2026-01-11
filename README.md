@@ -32,7 +32,7 @@ cp .env.example .env
 ### 2. 启动环境
 
 ```bash
-make install
+./install.sh
 ```
 
 这将自动完成以下操作：
@@ -53,70 +53,63 @@ make install
 ### 容器管理
 
 ```bash
-make up          # 启动容器
-make down        # 停止容器
-make restart     # 重启容器
-make ps          # 查看容器状态
-make logs        # 查看日志
+docker-compose up -d          # 启动容器
+docker-compose down           # 停止容器
+docker-compose restart        # 重启容器
+docker-compose ps             # 查看容器状态
+docker-compose logs -f        # 查看日志
 ```
 
 ### 进入容器
 
 ```bash
-make shell       # 进入 PHP 容器
-make mysql       # 进入 MySQL
-make redis       # 进入 Redis
+docker exec -it laravel-php sh                    # 进入 PHP 容器
+docker exec -it laravel-mysql mysql -ularavel -psecret laravel  # 进入 MySQL
+docker exec -it laravel-redis redis-cli           # 进入 Redis
 ```
 
 ### Composer 命令
 
 ```bash
-make composer-install      # 安装依赖
-make composer cmd="require laravel/ui"    # 添加包
-make composer-update       # 更新依赖
+docker exec -it laravel-php composer install                 # 安装依赖
+docker exec -it laravel-php composer require package/name   # 添加包
+docker exec -it laravel-php composer update                 # 更新依赖
 ```
 
 ### Artisan 命令
 
 ```bash
-make migrate              # 运行迁移
-make fresh                # 重置数据库
-make cache-clear          # 清除缓存
-make routes               # 查看路由
-make artisan cmd="make:model User"    # 自定义命令
+docker exec -it laravel-php php artisan migrate         # 运行迁移
+docker exec -it laravel-php php artisan migrate:fresh --seed  # 重置数据库
+docker exec -it laravel-php php artisan cache:clear     # 清除缓存
+docker exec -it laravel-php php artisan route:list      # 查看路由
+docker exec -it laravel-php php artisan make:model User # 自定义命令
+```
+
+### NPM 命令
+
+```bash
+docker exec -it laravel-php npm install                 # 安装依赖
+docker exec -it laravel-php npm run dev                 # 开发构建
+docker exec -it laravel-php npm run build               # 生产构建
 ```
 
 ### 数据库操作
 
 ```bash
-make migrate              # 运行迁移
-make seed                 # 运行填充
-make fresh                # 重置数据库
-make dump                 # 备份数据库
-make import file=dump.sql # 导入数据库
+docker exec -it laravel-php php artisan migrate         # 运行迁移
+docker exec -it laravel-php php artisan db:seed         # 运行填充
+docker exec -it laravel-php php artisan migrate:fresh --seed  # 重置数据库
+docker exec -it laravel-mysql mysqldump -ularavel -psecret laravel > dump.sql  # 备份
+docker exec -i laravel-mysql mysql -ularavel -psecret laravel < dump.sql       # 导入
 ```
 
 ### 测试
 
 ```bash
-make test                 # 运行所有测试
-make test-unit            # 运行单元测试
-make test-feature         # 运行功能测试
-make test-coverage        # 生成覆盖率报告
-```
-
-### 其他
-
-```bash
-make permission           # 修复权限
-make clean                # 清理 Docker 资源
-make reset                # 完全重置项目
-```
-
-查看所有可用命令：
-
-```bash
-make help
+docker exec -it laravel-php php artisan test           # 运行所有测试
+docker exec -it laravel-php php artisan test --testsuite=Unit     # 单元测试
+docker exec -it laravel-php php artisan test --testsuite=Feature # 功能测试
 ```
 
 ## 项目结构
@@ -137,7 +130,7 @@ laravel-docker/
 ├── docker-compose.yml
 ├── .env.example
 ├── .gitignore
-├── Makefile
+├── install.sh              # 初始化安装脚本
 └── README.md
 ```
 
@@ -201,7 +194,8 @@ lsof -i :3306
 ### 权限问题
 
 ```bash
-make permission
+docker exec -it laravel-php chown -R www-data:www-data /var/www/html
+docker exec -it laravel-php chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache
 ```
 
 ### 数据库连接失败
@@ -214,14 +208,19 @@ docker exec laravel-mysql mysql -u laravel -psecret -e "SHOW DATABASES;"
 ### 清除所有缓存
 
 ```bash
-make cache-clear
+docker exec -it laravel-php php artisan cache:clear
+docker exec -it laravel-php php artisan config:clear
+docker exec -it laravel-php php artisan route:clear
+docker exec -it laravel-php php artisan view:clear
 ```
 
 ### 完全重置
 
 ```bash
-make reset
-make install
+docker-compose down -v
+docker system prune -f
+rm -rf src/*
+./install.sh
 ```
 
 ## 安全注意事项
