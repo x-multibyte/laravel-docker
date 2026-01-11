@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# 自动检测 TTY
+if [ -t 0 ]; then
+    FLAGS="-it"
+else
+    FLAGS="-i"
+fi
+
+# 定义 Node 镜像版本，默认使用 LTS Alpine
+NODE_IMAGE=${NODE_IMAGE:-node:lts-alpine}
+
+# 端口映射: 默认映射 Vite 的 5173 端口
+# 如果你需要其他端口 (如 3000)，可以修改这里或传递环境变量
+VITE_PORT=${VITE_PORT:-5173}
+
+# 运行临时容器
+# --rm: 退出后自动删除容器
+# -u node: 以非 root 用户运行 (避免 node_modules 权限问题，但需注意 src 权限)
+# *修正*: 在 Docker 中处理权限最简单的方法通常是直接用 root 写入，或者用户 ID 匹配。
+# 为了兼容性，这里暂时使用默认用户 (通常是 root)，但在 install.sh 里我们有 chown 修复逻辑。
+# 如果想更完美，可以像 sail 一样传递 user id，但 alpine 下 root 通常没问题。
+
+docker run --rm $FLAGS \
+    -v "$(pwd)/src":/app \
+    -w /app \
+    -p ${VITE_PORT}:${VITE_PORT} \
+    $NODE_IMAGE \
+    npm "$@"

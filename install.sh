@@ -76,26 +76,19 @@ if [ ! -d "$PROJECT_PATH/vendor" ]; then
     # Configure DB in Laravel .env if newly created
     if [ -f "$PROJECT_PATH/.env" ]; then
         log "配置 Laravel 数据库连接..."
-        # Replace DB_CONNECTION=sqlite with mysql (适用于 Laravel 11+)
         sed -i '' 's/DB_CONNECTION=sqlite/DB_CONNECTION=mysql/g' "$PROJECT_PATH/.env"
-        
-        # 通用配置 (适用于所有版本)
         sed -i '' 's/# DB_HOST=127.0.0.1/DB_HOST=mysql/g' "$PROJECT_PATH/.env"
         sed -i '' 's/DB_HOST=127.0.0.1/DB_HOST=mysql/g' "$PROJECT_PATH/.env"
-        
         sed -i '' 's/# DB_PORT=3306/DB_PORT=3306/g' "$PROJECT_PATH/.env"
         sed -i '' 's/# DB_DATABASE=laravel/DB_DATABASE=laravel/g' "$PROJECT_PATH/.env"
         sed -i '' 's/# DB_USERNAME=root/DB_USERNAME=laravel/g' "$PROJECT_PATH/.env"
         sed -i '' 's/# DB_PASSWORD=/DB_PASSWORD=secret/g' "$PROJECT_PATH/.env"
-        
-        # Set Redis Host
         sed -i '' 's/REDIS_HOST=127.0.0.1/REDIS_HOST=redis/g' "$PROJECT_PATH/.env"
     fi
 fi
 
 # 8. Fix Permissions
 log "修复文件权限..."
-# Use root to chown
 docker exec -u root $EXEC_FLAGS laravel-php chown -R www-data:www-data /var/www/html
 docker exec $EXEC_FLAGS laravel-php chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache
 
@@ -111,7 +104,8 @@ fi
 
 # 11. Setup Helper Scripts
 log "配置便捷指令..."
-chmod +x docker-artisan docker-composer
+chmod +x docker-artisan docker-composer docker-npm
+
 if [ ! -L "artisan" ]; then
     ln -s docker-artisan artisan
     log "  - 已创建 ./artisan"
@@ -119,6 +113,10 @@ fi
 if [ ! -L "composer" ]; then
     ln -s docker-composer composer
     log "  - 已创建 ./composer"
+fi
+if [ ! -L "npm" ]; then
+    ln -s docker-npm npm
+    log "  - 已创建 ./npm"
 fi
 
 # 12. Show Info
@@ -132,3 +130,4 @@ echo "  - 应用地址: http://localhost:${HTTP_PORT}"
 [ "${ENABLE_PHPMYADMIN}" != "false" ] && echo "  - phpMyAdmin: http://localhost:${PMA_PORT}"
 echo "  - Artisan: ./artisan"
 echo "  - Composer: ./composer"
+echo "  - NPM:      ./npm"
