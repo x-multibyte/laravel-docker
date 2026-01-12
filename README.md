@@ -117,7 +117,7 @@ PHPMYADMIN_PORT=8082
 ```
 .
 ├── docker-artisan      # artisan 包装脚本
-├── docker-composer     # composer 包装脚本
+├── phpcomposer         # composer 包装脚本
 ├── docker-npm          # npm 包装脚本 (Disposable Container)
 ├── docker-compose.yml
 ├── install.sh          # 安装脚本

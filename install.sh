@@ -104,14 +104,14 @@ fi
 
 # 11. Setup Helper Scripts
 log "配置便捷指令..."
-chmod +x docker-artisan docker-composer docker-npm
+chmod +x docker-artisan phpcomposer docker-npm
 
 if [ ! -L "artisan" ]; then
     ln -s docker-artisan artisan
     log "  - 已创建 ./artisan"
 fi
 if [ ! -L "composer" ]; then
-    ln -s docker-composer composer
+    ln -s phpcomposer composer
     log "  - 已创建 ./composer"
 fi
 if [ ! -L "npm" ]; then
