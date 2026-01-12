@@ -19,7 +19,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Nginx (Only one version)
+          # ==================== Nginx ====================
           - name: nginx
             context: ./docker/nginx
             file: ./docker/nginx/Dockerfile
@@ -27,28 +27,7 @@ jobs:
             tag: latest
             platforms: linux/amd64,linux/arm64
           
-          # PHP 8.2 - Run (Production)
-          - name: php-8.2-run
-            context: ./docker/php
-            file: ./docker/php/Dockerfile
-            image: laravel-docker-php
-            tag: "8.2-run"
-            build_args: PHP_VERSION=8.2
-            platforms: linux/amd64,linux/arm64
-            target: run
-            
-          # PHP 8.2 - Dev (Development + Default)
-          # Note: We tag as "8.2-dev" AND "8.2"
-          - name: php-8.2-dev
-            context: ./docker/php
-            file: ./docker/php/Dockerfile
-            image: laravel-docker-php
-            tag: "8.2-dev,8.2" 
-            build_args: PHP_VERSION=8.2
-            platforms: linux/amd64,linux/arm64
-            target: dev
-
-          # PHP 8.3 - Run (Production)
+          # ==================== PHP 8.3 ====================
           - name: php-8.3-run
             context: ./docker/php
             file: ./docker/php/Dockerfile
@@ -57,14 +36,102 @@ jobs:
             build_args: PHP_VERSION=8.3
             platforms: linux/amd64,linux/arm64
             target: run
-
-          # PHP 8.3 - Dev (Development + Default)
           - name: php-8.3-dev
             context: ./docker/php
             file: ./docker/php/Dockerfile
             image: laravel-docker-php
             tag: "8.3-dev,8.3"
             build_args: PHP_VERSION=8.3
+            platforms: linux/amd64,linux/arm64
+            target: dev
+
+          # ==================== PHP 8.2 ====================
+          - name: php-8.2-run
+            context: ./docker/php
+            file: ./docker/php/Dockerfile
+            image: laravel-docker-php
+            tag: "8.2-run"
+            build_args: PHP_VERSION=8.2
+            platforms: linux/amd64,linux/arm64
+            target: run
+          - name: php-8.2-dev
+            context: ./docker/php
+            file: ./docker/php/Dockerfile
+            image: laravel-docker-php
+            tag: "8.2-dev,8.2"
+            build_args: PHP_VERSION=8.2
+            platforms: linux/amd64,linux/arm64
+            target: dev
+
+          # ==================== PHP 8.1 ====================
+          - name: php-8.1-run
+            context: ./docker/php
+            file: ./docker/php/Dockerfile
+            image: laravel-docker-php
+            tag: "8.1-run"
+            build_args: PHP_VERSION=8.1
+            platforms: linux/amd64,linux/arm64
+            target: run
+          - name: php-8.1-dev
+            context: ./docker/php
+            file: ./docker/php/Dockerfile
+            image: laravel-docker-php
+            tag: "8.1-dev,8.1"
+            build_args: PHP_VERSION=8.1
+            platforms: linux/amd64,linux/arm64
+            target: dev
+
+          # ==================== PHP 8.0 ====================
+          - name: php-8.0-run
+            context: ./docker/php
+            file: ./docker/php/Dockerfile
+            image: laravel-docker-php
+            tag: "8.0-run"
+            build_args: PHP_VERSION=8.0
+            platforms: linux/amd64,linux/arm64
+            target: run
+          - name: php-8.0-dev
+            context: ./docker/php
+            file: ./docker/php/Dockerfile
+            image: laravel-docker-php
+            tag: "8.0-dev,8.0"
+            build_args: PHP_VERSION=8.0
+            platforms: linux/amd64,linux/arm64
+            target: dev
+
+          # ==================== PHP 7.4 ====================
+          - name: php-7.4-run
+            context: ./docker/php
+            file: ./docker/php/Dockerfile
+            image: laravel-docker-php
+            tag: "7.4-run"
+            build_args: PHP_VERSION=7.4
+            platforms: linux/amd64,linux/arm64
+            target: run
+          - name: php-7.4-dev
+            context: ./docker/php
+            file: ./docker/php/Dockerfile
+            image: laravel-docker-php
+            tag: "7.4-dev,7.4"
+            build_args: PHP_VERSION=7.4
+            platforms: linux/amd64,linux/arm64
+            target: dev
+
+          # ==================== PHP 7.2 (Legacy LTS) ====================
+          - name: php-7.2-run
+            context: ./docker/php
+            file: ./docker/php/Dockerfile
+            image: laravel-docker-php
+            tag: "7.2-run"
+            build_args: PHP_VERSION=7.2
+            platforms: linux/amd64,linux/arm64
+            target: run
+          - name: php-7.2-dev
+            context: ./docker/php
+            file: ./docker/php/Dockerfile
+            image: laravel-docker-php
+            tag: "7.2-dev,7.2"
+            build_args: PHP_VERSION=7.2
             platforms: linux/amd64,linux/arm64
             target: dev
 
@@ -94,9 +161,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}
-          # Use raw tags from matrix
-          tags: |
-            ${{ matrix.tag }}
+          tags: ${{ matrix.tag }}
             
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
