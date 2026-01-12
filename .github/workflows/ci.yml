@@ -3,11 +3,9 @@ name: Build and Publish Images
 on:
   push:
     branches: [ "main" ]
-    # 只有当 Docker 相关文件改变时才触发，节省资源
     paths:
       - 'docker/**'
       - '.github/workflows/ci.yml'
-  # 允许手动触发
   workflow_dispatch:
 
 env:
@@ -21,29 +19,54 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Nginx (Only one version)
           - name: nginx
             context: ./docker/nginx
             file: ./docker/nginx/Dockerfile
             image: laravel-docker-nginx
             tag: latest
             platforms: linux/amd64,linux/arm64
-          - name: php-8.2
+          
+          # PHP 8.2 - Run (Production)
+          - name: php-8.2-run
             context: ./docker/php
             file: ./docker/php/Dockerfile
             image: laravel-docker-php
-            tag: "8.2"
+            tag: "8.2-run"
             build_args: PHP_VERSION=8.2
             platforms: linux/amd64,linux/arm64
-          - name: php-8.3
+            target: run
+            
+          # PHP 8.2 - Dev (Development + Default)
+          # Note: We tag as "8.2-dev" AND "8.2"
+          - name: php-8.2-dev
             context: ./docker/php
             file: ./docker/php/Dockerfile
             image: laravel-docker-php
-            tag: "8.3"
+            tag: "8.2-dev,8.2" 
+            build_args: PHP_VERSION=8.2
+            platforms: linux/amd64,linux/arm64
+            target: dev
+
+          # PHP 8.3 - Run (Production)
+          - name: php-8.3-run
+            context: ./docker/php
+            file: ./docker/php/Dockerfile
+            image: laravel-docker-php
+            tag: "8.3-run"
             build_args: PHP_VERSION=8.3
             platforms: linux/amd64,linux/arm64
-          # 可以根据需要添加更多版本，如 8.1, 8.0, 7.4
-          # - name: php-8.1
-          #   ...
+            target: run
+
+          # PHP 8.3 - Dev (Development + Default)
+          - name: php-8.3-dev
+            context: ./docker/php
+            file: ./docker/php/Dockerfile
+            image: laravel-docker-php
+            tag: "8.3-dev,8.3"
+            build_args: PHP_VERSION=8.3
+            platforms: linux/amd64,linux/arm64
+            target: dev
 
     permissions:
       contents: read
@@ -53,7 +76,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 设置 QEMU 以支持多架构构建 (arm64)
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -72,9 +94,10 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}
+          # Use raw tags from matrix
           tags: |
-            type=raw,value=${{ matrix.tag }}
-
+            ${{ matrix.tag }}
+            
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -84,6 +107,7 @@ jobs:
           platforms: ${{ matrix.platforms }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          target: ${{ matrix.target }}
           build-args: |
             ${{ matrix.build_args }}
           cache-from: type=gha,scope=${{ matrix.name }}
