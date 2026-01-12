@@ -27,6 +27,24 @@ jobs:
             tag: latest
             platforms: linux/amd64,linux/arm64
           
+          # ==================== PHP 8.4 (Latest) ====================
+          - name: php-8.4-run
+            context: ./docker/php
+            file: ./docker/php/Dockerfile
+            image: laravel-docker-php
+            tag: "8.4-run"
+            build_args: PHP_VERSION=8.4
+            platforms: linux/amd64,linux/arm64
+            target: run
+          - name: php-8.4-dev
+            context: ./docker/php
+            file: ./docker/php/Dockerfile
+            image: laravel-docker-php
+            tag: "8.4-dev,8.4"
+            build_args: PHP_VERSION=8.4
+            platforms: linux/amd64,linux/arm64
+            target: dev
+
           # ==================== PHP 8.3 ====================
           - name: php-8.3-run
             context: ./docker/php
@@ -99,7 +117,7 @@ jobs:
             platforms: linux/amd64,linux/arm64
             target: dev
 
-          # ==================== PHP 7.4 ====================
+          # ==================== PHP 7.4 (Legacy Min) ====================
           - name: php-7.4-run
             context: ./docker/php
             file: ./docker/php/Dockerfile
@@ -114,24 +132,6 @@ jobs:
             image: laravel-docker-php
             tag: "7.4-dev,7.4"
             build_args: PHP_VERSION=7.4
-            platforms: linux/amd64,linux/arm64
-            target: dev
-
-          # ==================== PHP 7.2 (Legacy LTS) ====================
-          - name: php-7.2-run
-            context: ./docker/php
-            file: ./docker/php/Dockerfile
-            image: laravel-docker-php
-            tag: "7.2-run"
-            build_args: PHP_VERSION=7.2
-            platforms: linux/amd64,linux/arm64
-            target: run
-          - name: php-7.2-dev
-            context: ./docker/php
-            file: ./docker/php/Dockerfile
-            image: laravel-docker-php
-            tag: "7.2-dev,7.2"
-            build_args: PHP_VERSION=7.2
             platforms: linux/amd64,linux/arm64
             target: dev
 
